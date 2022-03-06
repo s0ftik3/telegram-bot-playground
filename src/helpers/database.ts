@@ -3,8 +3,8 @@ import { CartItem, Item, User, UserItem } from '@/types/types';
 import { config } from '@/config';
 
 class Database {
-    public pool: any;
-    
+    public pool: Pool;
+
     constructor() {
         this.pool = new Pool({
             user: config.user,
@@ -41,7 +41,7 @@ export class UserClient extends Database {
         }
     }
 
-    async changeUserBalance(userId: number, newBalance: number): Promise<void> {
+    async setUserBalance(userId: number | string, newBalance: number): Promise<void> {
         await this.pool.query(
             `UPDATE "Users"
             SET balance = ${newBalance}
@@ -49,7 +49,7 @@ export class UserClient extends Database {
         );
     }
 
-    async depositUserBalance(userId: number, amount: number): Promise<void> {
+    async depositToUserBalance(userId: number | string, amount: number): Promise<void> {
         await this.pool.query(
             `UPDATE "Users"
             SET balance = balance + ${amount}
@@ -57,11 +57,11 @@ export class UserClient extends Database {
         );
     }
 
-    async getUserItems(userId: number): Promise<UserItem[]> {
+    async getUserItems(userId: number | string): Promise<UserItem[]> {
         return (await this.pool.query(`SELECT * FROM "UserItems" WHERE user_id = '${userId}';`)).rows;
     }
 
-    async getUserCart(userId: number): Promise<CartItem[]> {
+    async getUserCart(userId: number | string): Promise<CartItem[]> {
         return (await this.pool.query(
             `SELECT * FROM "Items" i
             INNER JOIN "UserItems" ui
@@ -84,7 +84,7 @@ export class ItemClient extends Database {
         return (await this.pool.query(`SELECT * FROM "Items" WHERE slug = '${slug}';`)).rows[0];
     }
 
-    async deleteAllItemsById(userId: number): Promise<void> {
+    async deleteAllItemsById(userId: number | string): Promise<void> {
         await this.pool.query(
             `DELETE FROM "UserItems"
             WHERE user_id = '${userId}';`
@@ -97,7 +97,7 @@ export class CartClient extends Database {
         super();
     }
 
-    async addItemToCart(itemId: number, userId: number): Promise<void> {
+    async addItemToCart(itemId: number, userId: number | string): Promise<void> {
         await this.pool.query(
             `INSERT INTO "UserItems" (item_id, user_id) 
             VALUES (${itemId}, ${userId})
@@ -105,7 +105,7 @@ export class CartClient extends Database {
         );
     }
 
-    async deleteItemFromCartById(userId: number, itemId: number): Promise<void> {
+    async deleteItemFromCartById(userId: number | string, itemId: number): Promise<void> {
         await this.pool.query(
             `DELETE FROM "UserItems"
             WHERE ctid IN (
