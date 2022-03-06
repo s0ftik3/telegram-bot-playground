@@ -12,7 +12,7 @@ export async function replyOnGetCashAction(ctx: Context) {
             randomCashNumber = 1000 - ctx.user.balance;
         }
 
-        await ctx.userClient.depositUserBalance(ctx.from.id, randomCashNumber);
+        await ctx.userClient.depositToUserBalance(ctx.from.id, randomCashNumber);
 
         return ctx.answerCbQuery(`Ваш баланс был пополнен на $${randomCashNumber}.`, true);
     } catch (err) {

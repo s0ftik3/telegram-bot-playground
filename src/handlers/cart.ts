@@ -61,12 +61,7 @@ export async function replyOnDeleteFromCartAction(ctx: Context) {
                 return { price: a.price + b.price };
             });
 
-            return ctx.editMessageText(
-                `Ваш баланс: <b>$${ctx.user.balance}</b>\n\n` +
-                `Чтобы удалить товар, нажмите на него один раз.`, {
-                    parse_mode: 'HTML',
-                    reply_markup: createCartKeyboard(cartItems, cartTotalPrice)
-                });
+            return ctx.editMessageReplyMarkup(createCartKeyboard(cartItems, cartTotalPrice));
         }
     } catch (err) {
         await ctx.answerCbQuery();
@@ -91,7 +86,7 @@ export async function replyOnBuyAction(ctx: Context) {
         if (ctx.user.balance >= +ctx.match[1]) {
             await ctx.answerCbQuery();
 
-            await ctx.userClient.changeUserBalance(ctx.from.id, ctx.user.balance - +ctx.match[1]);
+            await ctx.userClient.setUserBalance(ctx.from.id, ctx.user.balance - +ctx.match[1]);
             await ctx.itemClient.deleteAllItemsById(ctx.from.id);
 
             await ctx.deleteMessage();
