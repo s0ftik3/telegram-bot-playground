@@ -3,6 +3,6 @@ export const config = {
     user: '',
     password: '',
     host: '',
-    port: '',
+    port: 5432,
     database: ''
 };
