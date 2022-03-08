@@ -12,12 +12,6 @@ export interface Item {
     duplicates?: number
 }
 
-export interface UserItem {
-    id: number
-    item_id: number
-    user_id: number
-}
-
 export interface CartItem {
     id?: number
     title?: string

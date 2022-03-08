@@ -1,64 +1,137 @@
-import { Markup } from 'telegraf';
 import { CartItem, Item } from '@/types/types';
+import { InlineKeyboardMarkup, InlineKeyboardButton } from 'typegram/inline';
 
-export function createMainMenuKeyboard(itemsNumber: number) {
-    return Markup.inlineKeyboard([
-        [
-            Markup.callbackButton('Добавить', 'addItem'),
-            Markup.callbackButton(`Корзина ${!itemsNumber ? '' : `(${itemsNumber})`}`, 'openCart')
-        ],
-        [
-            Markup.callbackButton('Выдать себе денег', 'getCash')
-        ]
-    ]);
-}
+export class Keyboard {
+    public buttons: InlineKeyboardButton[];
+    public markupButtons: InlineKeyboardButton[][];
 
-export function createItemsKeyboard(data: Item[]) {
-    const buttons = data.map((e: Item) => {
-        return Markup.callbackButton(`${e.title} · $${e.price}`, `addToCart:${e.slug}`);
-    });
+    constructor() {
+        this.buttons = [];
+        this.markupButtons = [];
+    }
 
-    return {
-        inline_keyboard: [
-            ...Markup.inlineKeyboard(buttons, { columns: 2 }).inline_keyboard,
-            [Markup.callbackButton('‹ Назад', 'back')]
-        ]
-    };
-}
-
-export function createCartKeyboard(data: CartItem[], totalPrice: number) {
-    const filteredItems = {};
-
-    data.forEach((e) => {
-        filteredItems[e.slug] = {
-            title: e.title,
-            price: e.price,
-            slug: e.slug,
-            duplicates: (filteredItems[e.slug]?.duplicates || 0) + 1
+    draw(): InlineKeyboardMarkup {
+        return <InlineKeyboardMarkup>{
+            inline_keyboard: this.markupButtons
         }
-    });
+    }
 
-    const buttons = Object.values(filteredItems).map((e: Item) => {
-        if (e.duplicates > 1) {
-            return Markup.callbackButton(`${e.title} · ${e.duplicates}x · $${e.price}`, `deleteFromCart:${e.slug}`);
-        }
-        return Markup.callbackButton(`${e.title} · $${e.price}`, `deleteFromCart:${e.slug}`);
-    });
+    columns(value: number) {
+        this.markupButtons = this.buttons.reduce((result, item, index) => {
+            const chunkIndex = Math.floor(index / value);
 
-    return {
-        inline_keyboard: [
-            ...Markup.inlineKeyboard(buttons, { columns: 2 }).inline_keyboard,
-            [
-                Markup.callbackButton(`Оплатить ($${totalPrice})`, `buy:${totalPrice}`),
-                Markup.callbackButton(`Очистить`, 'clearCart')
-            ],
-            [Markup.callbackButton('‹ Назад', 'back')]
-        ]
-    };
-}
+            if(!result[chunkIndex]) {
+                result[chunkIndex] = [];
+            }
 
-export function createPaymentBackKeyboard() {
-    return Markup.inlineKeyboard([
-        Markup.callbackButton('‹ Главное меню', 'backToMain')
-    ]);
+            result[chunkIndex].push(item);
+
+            return result;
+        }, []);
+
+        return this;
+    }
+
+    mainMenuKeyboard(itemsNumber?: number) {
+        this.buttons = [
+            { text: 'Добавить', callback_data: 'addItem' },
+            { text: `Корзина ${!itemsNumber ? '' : `(${itemsNumber})`}`, callback_data: 'openCart' },
+            { text: 'Выдать себе денег', callback_data: 'getCash' }
+        ];
+
+        this.markupButtons = [this.buttons];
+
+        return this;
+    }
+
+    itemsKeyboard(data: Item[]) {
+        this.buttons = data.map((e: Item) => {
+            return { text: `${e.title} · $${e.price}`, callback_data: `addToCart:${e.slug}` };
+        });
+
+        this.markupButtons = [this.buttons];
+
+        return this;
+    }
+
+    cartKeyboard(data: CartItem[]) {
+        const filteredItems = {};
+
+        data.forEach((e) => {
+            filteredItems[e.slug] = {
+                title: e.title,
+                price: e.price,
+                slug: e.slug,
+                duplicates: (filteredItems[e.slug]?.duplicates || 0) + 1
+            }
+        });
+
+        this.buttons = Object.values(filteredItems).map((e: Item) => {
+            if (e.duplicates > 1) {
+                return { text: `${e.title} · ${e.duplicates}x · $${e.price}`, callback_data: `deleteFromCart:${e.slug}` };
+            }
+            return { text: `${e.title} · $${e.price}`, callback_data: `deleteFromCart:${e.slug}` };
+        });
+
+        this.markupButtons = [this.buttons];
+
+        return this;
+    }
+
+    paymentBackKeyboard() {
+        this.markupButtons = [[
+            { text: '‹ Главное меню', callback_data: 'backToMain' }
+        ]];
+
+        return this;
+    }
+
+    addCartButtons(totalPrice?: number) {
+        this.markupButtons.push(            [
+            { text: `Оплатить ($${totalPrice})`, callback_data: `buy:${totalPrice}` },
+            { text: `Очистить`, callback_data: 'clearCart' }
+        ])
+
+        return this;
+    }
+
+    addBackButton() {
+        this.markupButtons.push([
+            { text: '‹ Назад', callback_data: 'back' }
+        ])
+
+        return this;
+    }
+
+    static draw() {
+        return new Keyboard().draw();
+    }
+
+    static columns(value: number) {
+        return new Keyboard().columns(value);
+    }
+
+    static mainMenuKeyboard(itemsNumber?: number) {
+        return new Keyboard().mainMenuKeyboard(itemsNumber);
+    }
+
+    static itemsKeyboard(data: Item[]) {
+        return new Keyboard().itemsKeyboard(data);
+    }
+
+    static cartKeyboard(data: CartItem[]) {
+        return new Keyboard().cartKeyboard(data);
+    }
+
+    static paymentBackKeyboard() {
+        return new Keyboard().paymentBackKeyboard();
+    }
+
+    static addCartButtons(totalPrice?: number) {
+        return new Keyboard().addCartButtons(totalPrice);
+    }
+
+    static addBackButton() {
+        return new Keyboard().addBackButton();
+    }
 }

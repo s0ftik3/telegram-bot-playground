@@ -1,9 +1,9 @@
 import { Context } from 'telegraf';
-import { createCartKeyboard, createMainMenuKeyboard, createPaymentBackKeyboard } from '@/helpers/keyboard';
+import { Keyboard } from '@/helpers/keyboard';
 
 export async function replyWithCart(ctx: Context) {
     try {
-        const cartItems = await ctx.userClient.getUserCart(ctx.from.id);
+        const cartItems = await ctx.cartClient.getUserCart(ctx.from.id);
 
         if (!cartItems.length) {
             await ctx.answerCbQuery(
@@ -21,7 +21,12 @@ export async function replyWithCart(ctx: Context) {
                 `Ваш баланс: <b>$${ctx.user.balance}</b>\n\n` +
                 `Чтобы удалить товар, нажмите на него один раз.`, {
                     parse_mode: 'HTML',
-                    reply_markup: createCartKeyboard(cartItems, cartTotalPrice)
+                    reply_markup: Keyboard
+                        .cartKeyboard(cartItems)
+                        .columns(2)
+                        .addCartButtons(cartTotalPrice)
+                        .addBackButton()
+                        .draw()
                 });
         }
     } catch (err) {
@@ -40,9 +45,9 @@ export async function replyOnDeleteFromCartAction(ctx: Context) {
     try {
         const item = await ctx.itemClient.getItemBySlug(ctx.match[1]);
 
-        await ctx.cartClient.deleteItemFromCartById(ctx.from.id, item.id);
+        await ctx.cartClient.deleteItemFromCart(ctx.from.id, item.id);
 
-        const cartItems = await ctx.userClient.getUserCart(ctx.from.id);
+        const cartItems = await ctx.cartClient.getUserCart(ctx.from.id);
 
         if (!cartItems.length) {
             await ctx.answerCbQuery('Все товары были удалены из корзины');
@@ -52,7 +57,10 @@ export async function replyOnDeleteFromCartAction(ctx: Context) {
                 'Это тестовый бот, демонстрирующий работу c такими инструментами как: TypeScript + Telegraf + PostgreSQL.\n\n' +
                 'Вы можете добавить тестовые товары в корзину и посмотреть / купить их.', {
                     parse_mode: 'HTML',
-                    reply_markup: createMainMenuKeyboard(0)
+                    reply_markup: Keyboard
+                        .mainMenuKeyboard(0)
+                        .columns(2)
+                        .draw()
                 });
         } else {
             await ctx.answerCbQuery('Товар удалён из корзины');
@@ -61,7 +69,14 @@ export async function replyOnDeleteFromCartAction(ctx: Context) {
                 return { price: a.price + b.price };
             });
 
-            return ctx.editMessageReplyMarkup(createCartKeyboard(cartItems, cartTotalPrice));
+            return ctx.editMessageReplyMarkup(
+                Keyboard
+                    .cartKeyboard(cartItems)
+                    .columns(2)
+                    .addCartButtons(cartTotalPrice)
+                    .addBackButton()
+                    .draw()
+            );
         }
     } catch (err) {
         await ctx.answerCbQuery();
@@ -72,14 +87,14 @@ export async function replyOnDeleteFromCartAction(ctx: Context) {
 
 export async function replyOnBuyAction(ctx: Context) {
     try {
-        if (!(await ctx.userClient.getUserItems(ctx.from.id)).length) {
+        if (!(await ctx.cartClient.getUserCartSize(ctx.from.id))) {
             await ctx.answerCbQuery();
 
             await ctx.deleteMessage();
 
             return ctx.replyWithPhoto('https://http.cat/400', {
                 caption: '❌ Оплата не была произведена, сумма не была списана со счёта. У Вас пустая корзина :/',
-                reply_markup: createPaymentBackKeyboard()
+                reply_markup: Keyboard.paymentBackKeyboard().draw()
             });
         }
 
@@ -87,13 +102,13 @@ export async function replyOnBuyAction(ctx: Context) {
             await ctx.answerCbQuery();
 
             await ctx.userClient.setUserBalance(ctx.from.id, ctx.user.balance - +ctx.match[1]);
-            await ctx.itemClient.deleteAllItemsById(ctx.from.id);
+            await ctx.cartClient.deleteAllItemsFromCart(ctx.from.id);
 
             await ctx.deleteMessage();
 
             return ctx.replyWithPhoto('https://http.cat/200', {
                 caption: '✅ Оплата прошла успешно.',
-                reply_markup: createPaymentBackKeyboard()
+                reply_markup: Keyboard.paymentBackKeyboard().draw()
             });
         } else {
             return ctx.answerCbQuery('Недостаточно средств на балансе :/', true);
@@ -109,14 +124,17 @@ export async function replyOnClearCartAction(ctx: Context) {
     try {
         await ctx.answerCbQuery('Корзина очищена');
 
-        await ctx.itemClient.deleteAllItemsById(ctx.from.id);
+        await ctx.cartClient.deleteAllItemsFromCart(ctx.from.id);
 
         return ctx.editMessageText(
             `Привет, <b>${ctx.user.first_name}</b>.\n\n` +
             'Это тестовый бот, демонстрирующий работу c такими инструментами как: TypeScript + Telegraf + PostgreSQL.\n\n' +
             'Вы можете добавить тестовые товары в корзину и посмотреть / купить их.', {
                 parse_mode: 'HTML',
-                reply_markup: createMainMenuKeyboard(0)
+                reply_markup: Keyboard
+                    .mainMenuKeyboard(0)
+                    .columns(2)
+                    .draw()
             });
     } catch (err) {
         await ctx.answerCbQuery();

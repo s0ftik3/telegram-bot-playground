@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { CartItem, Item, User, UserItem } from '@/types/types';
+import { CartItem, Item, User } from '@/types/types';
 import { config } from '@/config';
 
 class Database {
@@ -56,19 +56,6 @@ export class UserClient extends Database {
             WHERE id = ${userId};`
         );
     }
-
-    async getUserItems(userId: number | string): Promise<UserItem[]> {
-        return (await this.pool.query(`SELECT * FROM "UserItems" WHERE user_id = '${userId}';`)).rows;
-    }
-
-    async getUserCart(userId: number | string): Promise<CartItem[]> {
-        return (await this.pool.query(
-            `SELECT * FROM "Items" i
-            INNER JOIN "UserItems" ui
-            ON i.id = ui.item_id
-            WHERE user_id = '${userId}';`
-        )).rows;
-    }
 }
 
 export class ItemClient extends Database {
@@ -83,18 +70,28 @@ export class ItemClient extends Database {
     async getItemBySlug(slug: string): Promise<Item> {
         return (await this.pool.query(`SELECT * FROM "Items" WHERE slug = '${slug}';`)).rows[0];
     }
-
-    async deleteAllItemsById(userId: number | string): Promise<void> {
-        await this.pool.query(
-            `DELETE FROM "UserItems"
-            WHERE user_id = '${userId}';`
-        );
-    }
 }
 
 export class CartClient extends Database {
     constructor() {
         super();
+    }
+
+    async getUserCartSize(userId: number | string): Promise<number> {
+        return (await this.pool.query(
+            `SELECT COUNT(*)
+            FROM "UserItems"
+            WHERE user_id = '${userId}';`
+        )).rows[0].count;
+    }
+
+    async getUserCart(userId: number | string): Promise<CartItem[]> {
+        return (await this.pool.query(
+            `SELECT * FROM "Items" i
+            INNER JOIN "UserItems" ui
+            ON i.id = ui.item_id
+            WHERE user_id = '${userId}';`
+        )).rows;
     }
 
     async addItemToCart(itemId: number, userId: number | string): Promise<void> {
@@ -105,7 +102,7 @@ export class CartClient extends Database {
         );
     }
 
-    async deleteItemFromCartById(userId: number | string, itemId: number): Promise<void> {
+    async deleteItemFromCart(userId: number | string, itemId: number): Promise<void> {
         await this.pool.query(
             `DELETE FROM "UserItems"
             WHERE ctid IN (
@@ -115,6 +112,13 @@ export class CartClient extends Database {
                 AND item_id = '${itemId}'
                 LIMIT 1
             );`
+        );
+    }
+
+    async deleteAllItemsFromCart(userId: number | string): Promise<void> {
+        await this.pool.query(
+            `DELETE FROM "UserItems"
+            WHERE user_id = '${userId}';`
         );
     }
 }
