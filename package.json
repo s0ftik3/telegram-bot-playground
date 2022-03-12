@@ -1,6 +1,6 @@
 {
   "name": "telegram-bot-playground",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "",
   "main": "dist/app.js",
   "author": "Vyacheslav <slava021323@gmail.com>",
