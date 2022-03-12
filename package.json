@@ -1,6 +1,6 @@
 {
-  "name": "telegram-bot-postgres-ts",
-  "version": "0.2.0",
+  "name": "telegram-bot-playground",
+  "version": "0.2.1",
   "description": "",
   "main": "dist/app.js",
   "author": "Vyacheslav <slava021323@gmail.com>",
