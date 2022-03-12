@@ -67,10 +67,16 @@ export class Keyboard {
         });
 
         this.buttons = Object.values(filteredItems).map((e: Item) => {
-            if (e.duplicates > 1) {
+            if (Object.values(filteredItems).length <= 1 && e.duplicates > 1) {
                 return { text: `${e.title} · ${e.duplicates}x · $${e.price}`, callback_data: `deleteFromCart:${e.slug}` };
             }
-            return { text: `${e.title} · $${e.price}`, callback_data: `deleteFromCart:${e.slug}` };
+            if (e.duplicates > 1 && e.duplicates < 10) {
+                return { text: `${e.title} · ${e.duplicates}x · $${e.price}`, callback_data: `deleteFromCart:${e.slug}` };
+            } else if (e.duplicates >= 10 && Object.values(filteredItems).length > 1) {
+                return { text: `${e.title.split(' ')[1]} · ${e.duplicates}x · $${e.price}`, callback_data: `deleteFromCart:${e.slug}` };
+            } else {
+                return { text: `${e.title} · $${e.price}`, callback_data: `deleteFromCart:${e.slug}` };
+            }
         });
 
         this.markupButtons = [this.buttons];
