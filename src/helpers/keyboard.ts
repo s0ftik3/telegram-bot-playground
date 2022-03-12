@@ -20,7 +20,7 @@ export class Keyboard {
         this.markupButtons = this.buttons.reduce((result, item, index) => {
             const chunkIndex = Math.floor(index / value);
 
-            if(!result[chunkIndex]) {
+            if (!result[chunkIndex]) {
                 result[chunkIndex] = [];
             }
 
@@ -96,7 +96,7 @@ export class Keyboard {
         this.markupButtons.push(            [
             { text: `Оплатить ($${totalPrice})`, callback_data: `buy:${totalPrice}` },
             { text: `Очистить`, callback_data: 'clearCart' }
-        ])
+        ]);
 
         return this;
     }
@@ -104,7 +104,7 @@ export class Keyboard {
     addBackButton() {
         this.markupButtons.push([
             { text: '‹ Назад', callback_data: 'back' }
-        ])
+        ]);
 
         return this;
     }

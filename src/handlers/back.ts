@@ -26,7 +26,7 @@ export async function replyOnBackAction(ctx: Context) {
                 'Это тестовый бот, демонстрирующий работу c такими инструментами как: TypeScript + Telegraf + PostgreSQL.\n\n' +
                 'Вы можете добавить тестовые товары в корзину и посмотреть / купить их.', {
                     reply_markup: Keyboard
-                        .mainMenuKeyboard(+itemsNumber)
+                        .mainMenuKeyboard(itemsNumber)
                         .columns(2)
                         .draw()
                 });
