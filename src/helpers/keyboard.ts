@@ -17,17 +17,9 @@ export class Keyboard {
     }
 
     columns(value: number) {
-        this.markupButtons = this.buttons.reduce((result, item, index) => {
-            const chunkIndex = Math.floor(index / value);
-
-            if (!result[chunkIndex]) {
-                result[chunkIndex] = [];
-            }
-
-            result[chunkIndex].push(item);
-
-            return result;
-        }, []);
+        for (let i = 0; i < this.buttons.length; i += value) {
+            this.markupButtons.push(this.buttons.slice(i, i + value));
+        }
 
         return this;
     }
