@@ -78,7 +78,7 @@ export class CartClient extends Database {
     }
 
     async getUserCartSize(userId: number | string): Promise<number> {
-        return (await this.pool.query(
+        return +(await this.pool.query(
             `SELECT COUNT(*)
             FROM "UserItems"
             WHERE user_id = '${userId}';`

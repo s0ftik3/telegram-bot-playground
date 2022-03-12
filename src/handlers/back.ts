@@ -14,7 +14,7 @@ export async function replyOnBackAction(ctx: Context) {
                 'Вы можете добавить тестовые товары в корзину и посмотреть / купить их.', {
                     parse_mode: 'HTML',
                     reply_markup: Keyboard
-                        .mainMenuKeyboard(+itemsNumber)
+                        .mainMenuKeyboard(itemsNumber)
                         .columns(2)
                         .draw()
                 });
